@@ -1,3 +1,3 @@
 # React Native Sixteen Puzzle
 
-![demo](http://g.recordit.co/74CXAgUB2I.gif)
+![demo](http://g.recordit.co/adn5zOQdNh.gif)
