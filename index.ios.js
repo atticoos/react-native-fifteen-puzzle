@@ -38,13 +38,17 @@ var SixteenPuzzle = React.createClass({
     return null;
   },
 
+  // ensure the selection is only within 1 block above, below, left, or right of the empty square
+  // and not diagonal
+  withinRange: function (row, column) {
+    var emptyPosition = this.getEmptyPosition();
+    return Math.abs(row - emptyPosition.row) <= 1 && Math.abs(column - emptyPosition.column) <= 1 &&
+    !(Math.abs(row - emptyPosition.row) == 1 && Math.abs(column - emptyPosition.column) == 1);
+  },
+
   swap: function (row, column) {
     var emptyPosition = this.getEmptyPosition();
-
-    // ensure the selection is only within 1 block above, below, left, or right of the empty square
-    // and not diagonal
-    if (Math.abs(row - emptyPosition.row) <= 1 && Math.abs(column - emptyPosition.column) <= 1 &&
-    !(Math.abs(row - emptyPosition.row) == 1 && Math.abs(column - emptyPosition.column) == 1)) {
+    if (this.withinRange(row, column)) {
       var tmp = this.state.board[row][column];
       this.state.board[row][column] = this.state.board[emptyPosition.row][emptyPosition.column];
       this.state.board[emptyPosition.row][emptyPosition.column] = tmp;
@@ -54,6 +58,15 @@ var SixteenPuzzle = React.createClass({
   render: function() {
     var swap = this.swap;
     var won = this.hasWon();
+    var getBackgroundColor = function (row, column) {
+      if (this.state.board[row][column].empty) {
+        return 'red';
+      } else if (this.withinRange(row, column)) {
+        return '#eee';
+      } else {
+        return 'transparent';
+      }
+    }.bind(this);
 
     if (won) {
       alert('you won');
@@ -66,7 +79,7 @@ var SixteenPuzzle = React.createClass({
             underlayColor='transparent'
             key={row + ',' + column}
             onPress={() => swap(row, column)}>
-            <View style={[styles.column, {backgroundColor: value.empty ? 'red' : 'transparent'}]}>
+            <View style={[styles.column, {backgroundColor: getBackgroundColor(row, column)}]}>
               <Text style={styles.text}>{value.empty ? 'X' : value.label}</Text>
             </View>
           </TouchableHighlight>
