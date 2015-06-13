@@ -11,60 +11,76 @@ var {
   Text,
   View,
   TouchableHighlight,
-  PanResponder
 } = React;
 
 var SixteenPuzzle = React.createClass({
-  _panResponder: {},
-  moveTo: {row: 0, column: 0},
 
   componentWillMount: function () {
     var board = [
       [
-        {label: 'A'},
-        {label: 'B'},
-        {label: 'C'},
-        {label: 'D'},
+        {label: '1A'},
+        {label: '1B'},
+        {label: '1C'},
+        {label: '1D'},
       ],
       [
-        {label: 'A'},
-        {label: 'B'},
-        {label: 'C'},
-        {label: 'D'},
+        {label: '2A'},
+        {label: '2B'},
+        {label: '2C'},
+        {label: '2D'},
       ],
       [
-        {label: 'A'},
-        {label: 'B'},
-        {label: 'C'},
-        {label: 'D'},
+        {label: '3A'},
+        {label: '3B'},
+        {label: '3C'},
+        {label: '3D'},
       ],
       [
-        {label: 'A'},
-        {label: 'B'},
-        {label: 'C'},
-        {label: 'D'},
+        {label: '4A'},
+        {label: '4B'},
+        {label: '4C'},
+        {label: '4D'},
       ]
     ];
 
-    board.forEach(function (row, rowIndex) {
-      row.forEach(function (column, columnIndex) {
-        column._panResponder = PanResponder.create({
-          onStartShouldSetPanResponder: this._handleStartShouldSetPanResponder,
-          onMoveShouldSetPanResponder: this._handleMoveShouldSetPanResponder,
-          onPanResponderGrant: this._handlePanResponderGrant,
-          onPanResponderMove: this._handlePanResponderMove.bind(this, rowIndex, columnIndex),
-          onPanResponderRelease: this._handlePanResponderEnd.bind(this, rowIndex, columnIndex),
-          onPanResponderTerminate: this._handlePanResponderEnd.bind(this, rowIndex, columnIndex),
-        });
-      }.bind(this));
-    }.bind(this));
+    var count = 0;
+    board = board.map(function (row, rowIndex) {
+      return row.map(function (column, columnIndex) {
+        column.label += count;
+        column.index = count;
+        count++;
+        return column;
+      });
+    });
 
     this.setState({
-      board: board
+      board: board,
+      selected: null
     });
   },
 
   swap: function (row, column) {
+    console.log('incoming row', row, 'column', column);
+    console.log('existing selection', this.state.selected);
+    if (this.state.selected === null) {
+      this.state.selected = {
+        row: row,
+        column: column
+      };
+    } else if (this.state.selected.row == row && this.state.selected.column == column) {
+      console.log('unsetting selection');
+      this.state.selected = null;
+    } else {
+      console.log('swapping');
+      var tmp = this.state.board[row][column];
+      this.state.board[row][column] = this.state.board[this.state.selected.row][this.state.selected.column];
+      this.state.board[this.state.selected.row][this.state.selected.column] = tmp;
+      this.state.selected = null;
+    }
+    console.log('selected', this.state.selected);
+    this.setState(this.state);
+    return;
+
     if (column < this.state.board[row].length -1) {
       var tmp = this.state.board[row][column + 1];
       this.state.board[row][column+1] = this.state.board[row][column];
@@ -78,59 +94,20 @@ var SixteenPuzzle = React.createClass({
     console.log('event', event);
   },
 
-  responderGranting: function (evt) {
-    return true;
-  },
-
-  _handleStartShouldSetPanResponder: function () {
-    return true;
-  },
-  _handleMoveShouldSetPanResponder: function () {
-    return true;
-  },
-  _handlePanResponderGrant: function () {},
-  _handlePanResponderMove: function (row, column, event, gestureState) {
-    // console.log('_handlePanResponderMove', gestureState.dx, gestureState.vx);
-
-  },
-  _handlePanResponderEnd: function (row, column, event, gestureState) {
-    var x = 0,
-        y = 0;
-    if (gestureState.dx > 5) {
-      x = 1;
-    } else if (gestureState.dx < -5) {
-      x = -1;
-    }
-
-    if (gestureState.dy > 5) {
-      y = -1;
-    } else if (gestureState.dy < -5) {
-      y = 1;
-    }
-
-    console.log('swapping', this.state.board[row][column], 'with', this.state.board[row + y][column + x]);
-
-
-    var tmp = this.state.board[row + y][column + x];
-    this.state.board[row + y][column + x] = this.state.board[row][column];
-    this.state.board[row][column] = tmp;
-    this.setState(this.state);
-
-    console.log('row', row, 'column', column);
-    console.log('moveTo', this.moveTo);
-  },
-
   render: function() {
     var swap = this.swap;
     console.log('handlers', this._panResponder);
     var rows = this.state.board.map((columns, row) =>
       <View style={styles.row} key={'row' + row}>
         {columns.map((value, column) =>
-          <View style={styles.column}
+          <TouchableHighlight
+            underlayColor='transparent'
             key={row + ',' + column}
-            {...value._panResponder.panHandlers}>
-            <Text>{row}.{value.label}</Text>
-          </View>
+            onPress={() => swap(row, column)}>
+            <View style={styles.column}>
+              <Text>{value.label}</Text>
+            </View>
+          </TouchableHighlight>
         )}
       </View>
     );
