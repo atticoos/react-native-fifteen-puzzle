@@ -27,13 +27,36 @@ var SixteenPuzzle = React.createClass({
     });
   },
 
+  getEmptyPosition: function () {
+    var position = {x: null, y: null};
+
+    for (var y = 0; y < this.state.board.length; y++) {
+      for (var x = 0; x < this.state.board[y].length; x++) {
+        if (this.state.board[y][x].empty) {
+          return {
+            column: x,
+            row: y
+          };
+        }
+      }
+    }
+    return null;
+  },
+
   swap: function (row, column) {
-    console.log('selected', this.state.selected);
-    if (this.state.selected === null) {
-      this.state.selected = {
-        row: row,
-        column: column
-      };
+    var emptyPosition = this.getEmptyPosition();
+    if (Math.abs(row - emptyPosition.row) <= 1 && Math.abs(column - emptyPosition.column) <= 1 &&
+    !(Math.abs(row - emptyPosition.row) == 1 && Math.abs(column - emptyPosition.column) == 1)) {
+      var tmp = this.state.board[row][column];
+      this.state.board[row][column] = this.state.board[emptyPosition.row][emptyPosition.column];
+      this.state.board[emptyPosition.row][emptyPosition.column] = tmp;
+      this.setState(this.state);
+    }
+
+    return;
+
+    if (this.state.selected === null && this.state.board[row][column].empty) {
+      this.state.selected = true;
     } else if (this.state.selected.row == row && this.state.selected.column == column) {
       this.state.selected = null;
     } else if (this.state.board[row][column].empty) {
@@ -83,7 +106,7 @@ var SixteenPuzzle = React.createClass({
   hasWon: function () {
     var flat = _.flatten(this.state.board);
     for (var i = 0; i < flat.length - 1; i++) {
-      if (flat[i] + 1 !== flat[i + 1].index) {
+      if (flat[i].index + 1 !== flat[i + 1].index) {
         return false;
       }
     }
