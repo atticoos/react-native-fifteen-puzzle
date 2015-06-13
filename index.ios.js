@@ -20,10 +20,7 @@ var SixteenPuzzle = React.createClass({
       return {label: index, index: index, empty: index === 15};
     }).shuffle().chunk(4).value();
 
-    this.setState({
-      board: board,
-      selected: null
-    });
+    this.setState({board: board});
   },
 
   getEmptyPosition: function () {
@@ -45,6 +42,7 @@ var SixteenPuzzle = React.createClass({
     var emptyPosition = this.getEmptyPosition();
 
     // ensure the selection is only within 1 block above, below, left, or right of the empty square
+    // and not diagonal
     if (Math.abs(row - emptyPosition.row) <= 1 && Math.abs(column - emptyPosition.column) <= 1 &&
     !(Math.abs(row - emptyPosition.row) == 1 && Math.abs(column - emptyPosition.column) == 1)) {
       var tmp = this.state.board[row][column];
