@@ -5,6 +5,7 @@
 'use strict';
 
 var React = require('react-native');
+var _ = require('lodash');
 var {
   AppRegistry,
   StyleSheet,
@@ -16,42 +17,9 @@ var {
 var SixteenPuzzle = React.createClass({
 
   componentWillMount: function () {
-    var board = [
-      [
-        {label: '1A'},
-        {label: '1B'},
-        {label: '1C'},
-        {label: '1D'},
-      ],
-      [
-        {label: '2A'},
-        {label: '2B'},
-        {label: '2C'},
-        {label: '2D'},
-      ],
-      [
-        {label: '3A'},
-        {label: '3B'},
-        {label: '3C'},
-        {label: '3D'},
-      ],
-      [
-        {label: '4A'},
-        {label: '4B'},
-        {label: '4C'},
-        {label: '4D'},
-      ]
-    ];
-
-    var count = 0;
-    board = board.map(function (row, rowIndex) {
-      return row.map(function (column, columnIndex) {
-        column.label += count;
-        column.index = count;
-        count++;
-        return column;
-      });
-    });
+    var board = _(16).times(function (index) {
+      return {label: index, index: index, empty: index === 15};
+    }).shuffle().chunk(4).value();
 
     this.setState({
       board: board,
@@ -60,43 +28,34 @@ var SixteenPuzzle = React.createClass({
   },
 
   swap: function (row, column) {
-    console.log('incoming row', row, 'column', column);
-    console.log('existing selection', this.state.selected);
+    console.log('selected', this.state.selected);
     if (this.state.selected === null) {
       this.state.selected = {
         row: row,
         column: column
       };
     } else if (this.state.selected.row == row && this.state.selected.column == column) {
-      console.log('unsetting selection');
       this.state.selected = null;
-    } else {
-      console.log('swapping');
+    } else if (this.state.board[row][column].empty) {
       var tmp = this.state.board[row][column];
       this.state.board[row][column] = this.state.board[this.state.selected.row][this.state.selected.column];
       this.state.board[this.state.selected.row][this.state.selected.column] = tmp;
       this.state.selected = null;
-    }
-    console.log('selected', this.state.selected);
-    this.setState(this.state);
-    return;
-
-    if (column < this.state.board[row].length -1) {
-      var tmp = this.state.board[row][column + 1];
-      this.state.board[row][column+1] = this.state.board[row][column];
-      this.state.board[row][column] = tmp;
+    } else {
+      this.state.selected = null;
+      return;
     }
     this.setState(this.state);
-    console.log('swapping', row, column);
   },
-
-  moved: function (event) {
-    console.log('event', event);
-  },
-
   render: function() {
     var swap = this.swap;
-    console.log('handlers', this._panResponder);
+
+    var won = this.hasWon();
+
+    if (won) {
+      alert('you won');
+    }
+
     var rows = this.state.board.map((columns, row) =>
       <View style={styles.row} key={'row' + row}>
         {columns.map((value, column) =>
@@ -104,8 +63,8 @@ var SixteenPuzzle = React.createClass({
             underlayColor='transparent'
             key={row + ',' + column}
             onPress={() => swap(row, column)}>
-            <View style={styles.column}>
-              <Text>{value.label}</Text>
+            <View style={[styles.column, {backgroundColor: value.empty ? 'red' : 'transparent'}]}>
+              <Text style={styles.text}>{value.empty ? 'X' : value.label}</Text>
             </View>
           </TouchableHighlight>
         )}
@@ -119,6 +78,16 @@ var SixteenPuzzle = React.createClass({
         </View>
       </View>
     );
+  },
+
+  hasWon: function () {
+    var flat = _.flatten(this.state.board);
+    for (var i = 0; i < flat.length - 1; i++) {
+      if (flat[i] + 1 !== flat[i + 1].index) {
+        return false;
+      }
+    }
+    return true;
   }
 });
 
@@ -148,6 +117,9 @@ var styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  text: {
+    fontSize: 24
   }
 });
 
