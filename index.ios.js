@@ -15,7 +15,6 @@ var {
 } = React;
 
 var SixteenPuzzle = React.createClass({
-
   componentWillMount: function () {
     var board = _(16).times(function (index) {
       return {label: index, index: index, empty: index === 15};
@@ -29,7 +28,6 @@ var SixteenPuzzle = React.createClass({
 
   getEmptyPosition: function () {
     var position = {x: null, y: null};
-
     for (var y = 0; y < this.state.board.length; y++) {
       for (var x = 0; x < this.state.board[y].length; x++) {
         if (this.state.board[y][x].empty) {
@@ -45,6 +43,8 @@ var SixteenPuzzle = React.createClass({
 
   swap: function (row, column) {
     var emptyPosition = this.getEmptyPosition();
+
+    // ensure the selection is only within 1 block above, below, left, or right of the empty square
     if (Math.abs(row - emptyPosition.row) <= 1 && Math.abs(column - emptyPosition.column) <= 1 &&
     !(Math.abs(row - emptyPosition.row) == 1 && Math.abs(column - emptyPosition.column) == 1)) {
       var tmp = this.state.board[row][column];
@@ -52,27 +52,9 @@ var SixteenPuzzle = React.createClass({
       this.state.board[emptyPosition.row][emptyPosition.column] = tmp;
       this.setState(this.state);
     }
-
-    return;
-
-    if (this.state.selected === null && this.state.board[row][column].empty) {
-      this.state.selected = true;
-    } else if (this.state.selected.row == row && this.state.selected.column == column) {
-      this.state.selected = null;
-    } else if (this.state.board[row][column].empty) {
-      var tmp = this.state.board[row][column];
-      this.state.board[row][column] = this.state.board[this.state.selected.row][this.state.selected.column];
-      this.state.board[this.state.selected.row][this.state.selected.column] = tmp;
-      this.state.selected = null;
-    } else {
-      this.state.selected = null;
-      return;
-    }
-    this.setState(this.state);
   },
   render: function() {
     var swap = this.swap;
-
     var won = this.hasWon();
 
     if (won) {
